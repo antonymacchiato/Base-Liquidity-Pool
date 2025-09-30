@@ -26,7 +26,7 @@ base-liquidity-pool/
 
 🚀 Installation and Setup
 1. Clone the repository
-git clone https://github.com/yourusername/base-liquidity-pool.git
+git clone https://github.com/antonymacchiato/Base-Liquidity-Pool.git
 cd base-liquidity-pool
 2. Install dependencies
 npm install
@@ -118,6 +118,8 @@ Audit Status:
 Initial security audit completed
 Formal verification in progress
 Community review underway
+
+
 📈 Performance Metrics
 Gas Efficiency:
 Add liquidity: ~120,000 gas
@@ -127,6 +129,8 @@ Pool creation: ~150,000 gas
 Transaction Speed:
 Average confirmation time: < 2 seconds
 Peak throughput: 180+ transactions/second
+
+
 🔄 Future Enhancements
 Planned Features:
 Advanced Analytics - Comprehensive pool analytics and insights
@@ -135,26 +139,17 @@ Concentrated Liquidity - Concentrated liquidity positions
 Multi-Chain Integration - Cross-chain liquidity pools
 Governance System - Community governance for pool parameters
 Advanced Trading - Limit orders and advanced trading features
+
+
 🤝 Contributing
 We welcome contributions to improve the Base Liquidity Pool:
-
 Fork the repository
 Create your feature branch (git checkout -b feature/AmazingFeature)
 Commit your changes (git commit -m 'Add some AmazingFeature')
 Push to the branch (git push origin feature/AmazingFeature)
 Open a pull request
+
 📄 License
 This project is licensed under the MIT License - see the LICENSE file for details.
 
-📞 Support
-For support, please open an issue on our GitHub repository or contact us at:
-
-Email: support@baseliquiditypool.com
-Twitter: @BaseLiquidityPool
-Discord: Base Liquidity Pool Community
-🌐 Links
-GitHub Repository: https://github.com/yourusername/base-liquidity-pool
-Base Network: https://base.org
-Documentation: https://docs.baseliquiditypool.com
-Community Forum: https://community.baseliquiditypool.com
 Built with ❤️ on Base Network
