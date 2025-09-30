@@ -1,9 +1,11 @@
 Base Liquidity Pool
 
 📋 Project Description
+
 Base Liquidity Pool is a decentralized liquidity provision protocol that enables users to contribute liquidity to various token pairs and earn trading fees. The protocol supports automated market making with dynamic pricing and risk management features.
 
 🔧 Technologies Used
+
 Programming Language: Solidity 0.8.0
 Framework: Hardhat
 Network: Base Network
@@ -25,6 +27,7 @@ base-liquidity-pool/
 └── README.md
 
 🚀 Installation and Setup
+
 1. Clone the repository
 git clone https://github.com/antonymacchiato/Base-Liquidity-Pool.git
 cd base-liquidity-pool
@@ -39,6 +42,7 @@ npx hardhat run scripts/deploy.js --network base
 
 
 💰 Features
+
 Core Functionality:
 ✅ Liquidity provision for token pairs
 ✅ Automated market making
@@ -72,6 +76,7 @@ PoolCreated - Emitted when new pool is created
 
 
 📊 Contract Structure
+
 Pool Structure:
 struct Pool {
     address tokenA;
@@ -91,6 +96,7 @@ struct LiquidityPosition {
 
 
 ⚡ Deployment Process
+
 Prerequisites:
 Node.js >= 14.x
 npm >= 6.x
@@ -101,12 +107,11 @@ Deployment Steps:
 Configure your hardhat.config.js with Base network settings
 Set your private key in .env file
 Run deployment script:
-bash
-
-
-1
 npx hardhat run scripts/deploy.js --network base
+
+
 🔒 Security Considerations
+
 Security Measures:
 Reentrancy Protection - Using OpenZeppelin's ReentrancyGuard
 Input Validation - Comprehensive input validation
@@ -121,6 +126,7 @@ Community review underway
 
 
 📈 Performance Metrics
+
 Gas Efficiency:
 Add liquidity: ~120,000 gas
 Remove liquidity: ~100,000 gas
@@ -132,6 +138,7 @@ Peak throughput: 180+ transactions/second
 
 
 🔄 Future Enhancements
+
 Planned Features:
 Advanced Analytics - Comprehensive pool analytics and insights
 Liquidity Mining - Staking rewards for liquidity providers
@@ -142,6 +149,7 @@ Advanced Trading - Limit orders and advanced trading features
 
 
 🤝 Contributing
+
 We welcome contributions to improve the Base Liquidity Pool:
 Fork the repository
 Create your feature branch (git checkout -b feature/AmazingFeature)
