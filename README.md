@@ -1,4 +1,5 @@
 Base Liquidity Pool
+
 📋 Project Description
 Base Liquidity Pool is a decentralized liquidity provision protocol that enables users to contribute liquidity to various token pairs and earn trading fees. The protocol supports automated market making with dynamic pricing and risk management features.
 
@@ -8,20 +9,9 @@ Framework: Hardhat
 Network: Base Network
 Standards: ERC-20
 Libraries: OpenZeppelin, Uniswap V2 Router
+
 🏗️ Project Architecture
 
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
-10
-11
 base-liquidity-pool/
 ├── contracts/
 │   ├── LiquidityPool.sol
@@ -33,39 +23,21 @@ base-liquidity-pool/
 ├── hardhat.config.js
 ├── package.json
 └── README.md
+
 🚀 Installation and Setup
 1. Clone the repository
-bash
-
-
-1
-2
 git clone https://github.com/yourusername/base-liquidity-pool.git
 cd base-liquidity-pool
 2. Install dependencies
-bash
-
-
-1
 npm install
 3. Compile contracts
-bash
-
-
-1
 npx hardhat compile
 4. Run tests
-bash
-
-
-1
 npx hardhat test
 5. Deploy to Base network
-bash
-
-
-1
 npx hardhat run scripts/deploy.js --network base
+
+
 💰 Features
 Core Functionality:
 ✅ Liquidity provision for token pairs
@@ -74,6 +46,7 @@ Core Functionality:
 ✅ Liquidity withdrawal
 ✅ Dynamic pricing
 ✅ Risk management
+
 Advanced Features:
 Dual Token Pairs - Support for any two ERC-20 tokens
 Automated Pricing - Constant product formula (x*y=k)
@@ -82,32 +55,24 @@ Liquidity Mining - Incentivized liquidity provision
 Risk Controls - Slippage protection and price limits
 Analytics Dashboard - Real-time pool performance
 🛠️ Smart Contract Functions
+
 Core Functions:
 addLiquidity(address tokenA, address tokenB, uint256 amountA, uint256 amountB) - Add liquidity to pool
 removeLiquidity(address tokenA, address tokenB, uint256 liquidityAmount) - Remove liquidity from pool
 swap(address tokenIn, address tokenOut, uint256 amountIn, uint256 minAmountOut) - Execute token swap
 getPoolInfo(address tokenA, address tokenB) - Get pool information
 calculateLiquidityValue(address tokenA, address tokenB, uint256 liquidityAmount) - Calculate liquidity value
+
 Events:
 LiquidityAdded - Emitted when liquidity is added
 LiquidityRemoved - Emitted when liquidity is removed
 TokenSwapped - Emitted when token swap occurs
 FeeCollected - Emitted when fees are collected
 PoolCreated - Emitted when new pool is created
+
+
 📊 Contract Structure
 Pool Structure:
-solidity
-
-
-1
-2
-3
-4
-5
-6
-7
-8
-9
 struct Pool {
     address tokenA;
     address tokenB;
@@ -118,19 +83,13 @@ struct Pool {
     uint256 lastUpdate;
 }
 Liquidity Position:
-solidity
-
-
-1
-2
-3
-4
-5
 struct LiquidityPosition {
     uint256 amount;
     uint256 lastUpdate;
     uint256 earnedFees;
 }
+
+
 ⚡ Deployment Process
 Prerequisites:
 Node.js >= 14.x
