@@ -54,7 +54,7 @@ contract LiquidityPool is Ownable {
         }
     }
     
-    function addLiquidity(
+function addLiquidity(
         uint256[] calldata amounts
     ) external {
         require(amounts.length == poolTokens.length, "Invalid amounts array");
@@ -119,3 +119,6 @@ contract LiquidityPool is Ownable {
         return total;
     }
 }
+
+
+
