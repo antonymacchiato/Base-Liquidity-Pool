@@ -1,6 +1,6 @@
 // base-liquidity-pool/scripts/simulation.js
 const { ethers } = require("hardhat");
-const fs = require("fs");
+const fs = require("fs"); 
 
 async function simulateLiquidityPool() {
   console.log("Simulating Base Liquidity Pool behavior...");
