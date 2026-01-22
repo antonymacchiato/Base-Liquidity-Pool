@@ -8,7 +8,7 @@ async function checkLiquidityPoolCompliance() {
   const poolAddress = "0x...";
   const pool = await ethers.getContractAt("LiquidityPoolV2", poolAddress);
   
-  // Проверка соответствия стандартам
+
   const complianceReport = {
     timestamp: new Date().toISOString(),
     poolAddress: poolAddress,
@@ -20,7 +20,7 @@ async function checkLiquidityPoolCompliance() {
   };
   
   try {
-    // Статус соответствия
+
     const complianceStatus = await pool.getComplianceStatus();
     complianceReport.complianceStatus = {
       regulatoryCompliance: complianceStatus.regulatoryCompliance,
@@ -30,7 +30,7 @@ async function checkLiquidityPoolCompliance() {
       overallScore: complianceStatus.overallScore.toString()
     };
     
-    // Регуляторные требования
+
     const regulatoryRequirements = await pool.getRegulatoryRequirements();
     complianceReport.regulatoryRequirements = {
       licensing: regulatoryRequirements.licensing,
@@ -40,7 +40,7 @@ async function checkLiquidityPoolCompliance() {
       investorProtection: regulatoryRequirements.investorProtection
     };
     
-    // Стандарты безопасности
+
     const securityStandards = await pool.getSecurityStandards();
     complianceReport.securityStandards = {
       codeAudits: securityStandards.codeAudits,
