@@ -50,7 +50,7 @@ async function checkLiquidityPoolCompliance() {
       backupSystems: securityStandards.backupSystems
     };
     
-    // Ликвидность соответствия
+
     const liquidityCompliance = await pool.getLiquidityCompliance();
     complianceReport.liquidityCompliance = {
       minimumLiquidity: liquidityCompliance.minimumLiquidity,
