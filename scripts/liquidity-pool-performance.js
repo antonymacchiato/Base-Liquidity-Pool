@@ -8,7 +8,7 @@ async function analyzeLiquidityPoolPerformance() {
   const poolAddress = "0x...";
   const pool = await ethers.getContractAt("LiquidityPoolV2", poolAddress);
   
-  // Анализ производительности
+
   const performanceReport = {
     timestamp: new Date().toISOString(),
     poolAddress: poolAddress,
