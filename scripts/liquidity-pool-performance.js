@@ -41,7 +41,7 @@ async function analyzeLiquidityPoolPerformance() {
       capitalEfficiency: efficiencyScores.capitalEfficiency.toString()
     };
     
-    // Пользовательский опыт
+ 
     const userExperience = await pool.getUserExperience();
     performanceReport.userExperience = {
       interfaceUsability: userExperience.interfaceUsability.toString(),
