@@ -20,7 +20,7 @@ async function analyzeLiquidityPoolPerformance() {
   };
   
   try {
-    // Метрики производительности
+
     const performanceMetrics = await pool.getPerformanceMetrics();
     performanceReport.performanceMetrics = {
       responseTime: performanceMetrics.responseTime.toString(),
