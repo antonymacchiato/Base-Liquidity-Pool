@@ -56,7 +56,7 @@ contract LiquidityPoolV2 is Ownable, ReentrancyGuard {
     uint256 public constant MAX_FEE_RATE = 10000; // 100%
     uint256 public constant MIN_FEE_RATE = 10; // 0.1%
     
-    // Events
+   
     event LiquidityAdded(
         address indexed user,
         address indexed token,
