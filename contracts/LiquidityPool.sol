@@ -117,8 +117,8 @@ function addLiquidity(
             total += poolTokens[i].balance;
         }
         return total;
-    }
-}
+    } 
+ } 
 
 
 
