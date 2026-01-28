@@ -437,4 +437,36 @@ contract LiquidityPoolV2 is Ownable, ReentrancyGuard {
     function getMinLiquidity() external view returns (uint256) {
         return poolConfig.minLiquidity;
     }
+    // Добавить структуру:
+struct ConcentratedLiquidity {
+    address tokenA;
+    address tokenB;
+    uint256 lowerPrice;
+    uint256 upperPrice;
+    uint256 liquidityAmount;
+    uint256 fee;
+    uint256 lastUpdateTime;
+}
+
+// Добавить функции:
+function addConcentratedLiquidity(
+    address tokenA,
+    address tokenB,
+    uint256 lowerPrice,
+    uint256 upperPrice,
+    uint256 amountA,
+    uint256 amountB
+) external {
+    // Добавление концентрированной ликвидности
+}
+
+function removeConcentratedLiquidity(
+    address tokenA,
+    address tokenB,
+    uint256 lowerPrice,
+    uint256 upperPrice,
+    uint256 liquidityAmount
+) external {
+    // Удаление концентрированной ликвидности
+}
 }
