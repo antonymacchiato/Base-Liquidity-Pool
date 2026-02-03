@@ -469,4 +469,127 @@ function removeConcentratedLiquidity(
 ) external {
     // Удаление концентрированной ликвидности
 }
+// Добавить структуры:
+struct PriceRange {
+    uint256 lowerBound;
+    uint256 upperBound;
+    uint256 liquidityAmount;
+    uint256 targetPercentage;
+    uint256 currentPercentage;
+    bool active;
+}
+
+struct AutomatedDistribution {
+    uint256 poolId;
+    address tokenA;
+    address tokenB;
+    uint256[] priceRanges;
+    uint256 lastDistributionTime;
+    uint256 distributionFrequency;
+    bool enabled;
+}
+
+// Добавить маппинги:
+mapping(uint256 => PriceRange[]) public priceRanges;
+mapping(uint256 => AutomatedDistribution) public automatedDistributions;
+
+// Добавить события:
+event PriceRangeAdded(
+    uint256 indexed poolId,
+    uint256 lowerBound,
+    uint256 upperBound,
+    uint256 targetPercentage
+);
+
+event DistributionScheduled(
+    uint256 indexed poolId,
+    uint256 scheduledTime,
+    uint256 frequency
+);
+
+event LiquidityDistributed(
+    uint256 indexed poolId,
+    uint256 amount,
+    string range,
+    uint256 timestamp
+);
+
+// Добавить функции:
+function addPriceRange(
+    uint256 poolId,
+    uint256 lowerBound,
+    uint256 upperBound,
+    uint256 targetPercentage
+) external {
+    require(lowerBound < upperBound, "Invalid price range");
+    require(targetPercentage <= 10000, "Target percentage too high");
+    
+    PriceRange memory range = PriceRange({
+        lowerBound: lowerBound,
+        upperBound: upperBound,
+        liquidityAmount: 0,
+        targetPercentage: targetPercentage,
+        currentPercentage: 0,
+        active: true
+    });
+    
+    priceRanges[poolId].push(range);
+    
+    emit PriceRangeAdded(poolId, lowerBound, upperBound, targetPercentage);
+}
+
+function scheduleAutomatedDistribution(
+    uint256 poolId,
+    uint256 frequency
+) external {
+    require(frequency > 0, "Frequency must be greater than 0");
+    
+    automatedDistributions[poolId] = AutomatedDistribution({
+        poolId: poolId,
+        tokenA: address(0),
+        tokenB: address(0),
+        priceRanges: new uint256[](0),
+        lastDistributionTime: block.timestamp,
+        distributionFrequency: frequency,
+        enabled: true
+    });
+    
+    emit DistributionScheduled(poolId, block.timestamp, frequency);
+}
+
+function distributeLiquidityAutomatically(uint256 poolId) external {
+    AutomatedDistribution storage distribution = automatedDistributions[poolId];
+    require(distribution.enabled, "Distribution not enabled");
+    require(block.timestamp >= distribution.lastDistributionTime + distribution.distributionFrequency, "Too early for distribution");
+    
+    // Calculate and distribute liquidity
+    uint256 totalLiquidity = getTotalLiquidity(poolId);
+    
+    for (uint256 i = 0; i < priceRanges[poolId].length; i++) {
+        PriceRange storage range = priceRanges[poolId][i];
+        if (range.active) {
+            uint256 amountToDistribute = (totalLiquidity * range.targetPercentage) / 10000;
+            range.liquidityAmount += amountToDistribute;
+            
+            emit LiquidityDistributed(poolId, amountToDistribute, 
+                string(abi.encodePacked(range.lowerBound, "-", range.upperBound)), 
+                block.timestamp);
+        }
+    }
+    
+    distribution.lastDistributionTime = block.timestamp;
+}
+
+function getLiquidityDistribution(uint256 poolId) external view returns (PriceRange[] memory) {
+    return priceRanges[poolId];
+}
+
+function getDistributionInfo(uint256 poolId) external view returns (AutomatedDistribution memory) {
+    return automatedDistributions[poolId];
+}
+
+function getTotalLiquidity(uint256 poolId) internal view returns (uint256) {
+    // Implementation would return total liquidity
+    return 0;
+}
 }
