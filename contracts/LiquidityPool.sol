@@ -489,11 +489,11 @@ struct AutomatedDistribution {
     bool enabled;
 }
 
-// Добавить маппинги:
+
 mapping(uint256 => PriceRange[]) public priceRanges;
 mapping(uint256 => AutomatedDistribution) public automatedDistributions;
 
-// Добавить события:
+
 event PriceRangeAdded(
     uint256 indexed poolId,
     uint256 lowerBound,
