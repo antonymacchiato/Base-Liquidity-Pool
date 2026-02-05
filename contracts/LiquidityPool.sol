@@ -592,4 +592,389 @@ function getTotalLiquidity(uint256 poolId) internal view returns (uint256) {
     // Implementation would return total liquidity
     return 0;
 }
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
+
+contract LiquidityPool is Ownable, ReentrancyGuard {
+    using SafeMath for uint256;
+
+    // Существующие структуры и функции...
+    
+    // Новые структуры для концентрированной ликвидности
+    struct ConcentratedLiquidityPosition {
+        uint256 positionId;
+        address owner;
+        address tokenA;
+        address tokenB;
+        uint256 lowerPrice;
+        uint256 upperPrice;
+        uint256 liquidityAmount;
+        uint256 fee;
+        uint256 lastUpdateTime;
+        uint256[] tokenAmounts;
+        uint256[] priceRanges;
+        uint256 allocationWeight;
+        bool active;
+        uint256 stakedAmount;
+        uint256 rewardDebt;
+        uint256 earnedRewards;
+        uint256 createdAt;
+    }
+    
+    struct PriceRange {
+        uint256 lowerBound;
+        uint256 upperBound;
+        uint256 liquidityAllocation;
+        uint256 totalVolume;
+        uint256 lastUpdated;
+        uint256 currentPrice;
+        uint256 allocationWeight;
+    }
+    
+    struct ConcentratedPool {
+        address tokenA;
+        address tokenB;
+        uint256 totalLiquidity;
+        uint256 totalStaked;
+        uint256 fee;
+        uint256 rewardRate;
+        uint256 lastUpdateTime;
+        uint256 accRewardPerShare;
+        uint256 poolStartTime;
+        uint256 poolEndTime;
+        bool isActive;
+        uint256 minPrice;
+        uint256 maxPrice;
+        uint256 priceStep;
+        mapping(uint256 => PriceRange) priceRanges;
+        uint256[] activePriceRanges;
+    }
+    
+    struct UserConcentratedPosition {
+        uint256 positionId;
+        address owner;
+        uint256 liquidityAmount;
+        uint256 rewardDebt;
+        uint256 earnedRewards;
+        uint256 lastUpdateTime;
+        uint256[] stakingHistory;
+        uint256 totalRewardsReceived;
+        uint256 firstStakeTime;
+        uint256 lastClaimTime;
+        uint256 pendingRewards;
+    }
+    
+    // Новые маппинги
+    mapping(uint256 => ConcentratedLiquidityPosition) public concentratedPositions;
+    mapping(address => mapping(address => ConcentratedPool)) public concentratedPools;
+    mapping(address => mapping(uint256 => UserConcentratedPosition)) public userConcentratedPositions;
+    mapping(address => uint256[]) public userConcentratedPositionsList;
+    
+    // Новые события
+    event ConcentratedLiquidityPositionCreated(
+        uint256 indexed positionId,
+        address indexed owner,
+        address tokenA,
+        address tokenB,
+        uint256 lowerPrice,
+        uint256 upperPrice,
+        uint256 liquidityAmount,
+        uint256 createdAt
+    );
+    
+    event ConcentratedLiquidityPositionUpdated(
+        uint256 indexed positionId,
+        uint256 liquidityAmount,
+        uint256 updatedAt
+    );
+    
+    event ConcentratedLiquidityPositionRemoved(
+        uint256 indexed positionId,
+        address indexed owner,
+        uint256 liquidityAmount,
+        uint256 removedAt
+    );
+    
+    event PriceRangeUpdated(
+        address indexed tokenA,
+        address indexed tokenB,
+        uint256 rangeId,
+        uint256 lowerBound,
+        uint256 upperBound,
+        uint256 liquidityAllocation,
+        uint256 updatedAt
+    );
+    
+    event ConcentratedPoolCreated(
+        address indexed tokenA,
+        address indexed tokenB,
+        uint256 fee,
+        uint256 minPrice,
+        uint256 maxPrice,
+        uint256 priceStep
+    );
+    
+    // Новые функции для концентрированной ликвидности
+    function createConcentratedPool(
+        address tokenA,
+        address tokenB,
+        uint256 fee,
+        uint256 minPrice,
+        uint256 maxPrice,
+        uint256 priceStep
+    ) external onlyOwner {
+        require(tokenA != tokenB, "Same tokens");
+        require(minPrice < maxPrice, "Invalid price range");
+        require(priceStep > 0, "Invalid price step");
+        
+        ConcentratedPool storage pool = concentratedPools[tokenA][tokenB];
+        pool.tokenA = tokenA;
+        pool.tokenB = tokenB;
+        pool.fee = fee;
+        pool.minPrice = minPrice;
+        pool.maxPrice = maxPrice;
+        pool.priceStep = priceStep;
+        pool.poolStartTime = block.timestamp;
+        pool.poolEndTime = block.timestamp + 365 days; // 1 год
+        pool.isActive = true;
+        
+        // Создать диапазоны цен
+        uint256 price = minPrice;
+        uint256 rangeId = 0;
+        while (price < maxPrice) {
+            uint256 upperPrice = price + priceStep;
+            if (upperPrice > maxPrice) {
+                upperPrice = maxPrice;
+            }
+            
+            pool.priceRanges[rangeId] = PriceRange({
+                lowerBound: price,
+                upperBound: upperPrice,
+                liquidityAllocation: 0,
+                totalVolume: 0,
+                lastUpdated: block.timestamp,
+                currentPrice: price + (priceStep / 2),
+                allocationWeight: 1000 // 10% веса по умолчанию
+            });
+            
+            pool.activePriceRanges.push(rangeId);
+            rangeId++;
+            price = upperPrice;
+        }
+        
+        emit ConcentratedPoolCreated(tokenA, tokenB, fee, minPrice, maxPrice, priceStep);
+    }
+    
+    function createConcentratedLiquidityPosition(
+        address tokenA,
+        address tokenB,
+        uint256 lowerPrice,
+        uint256 upperPrice,
+        uint256 liquidityAmount,
+        uint256[] memory tokenAmounts
+    ) external {
+        require(concentratedPools[tokenA][tokenB].isActive, "Pool not active");
+        require(lowerPrice < upperPrice, "Invalid price range");
+        require(liquidityAmount > 0, "Liquidity amount must be greater than 0");
+        
+        // Проверка, что цена в диапазоне пула
+        ConcentratedPool storage pool = concentratedPools[tokenA][tokenB];
+        require(lowerPrice >= pool.minPrice && upperPrice <= pool.maxPrice, "Price out of range");
+        
+        uint256 positionId = uint256(keccak256(abi.encodePacked(tokenA, tokenB, lowerPrice, upperPrice, block.timestamp)));
+        
+        concentratedPositions[positionId] = ConcentratedLiquidityPosition({
+            positionId: positionId,
+            owner: msg.sender,
+            tokenA: tokenA,
+            tokenB: tokenB,
+            lowerPrice: lowerPrice,
+            upperPrice: upperPrice,
+            liquidityAmount: liquidityAmount,
+            fee: pool.fee,
+            lastUpdateTime: block.timestamp,
+            tokenAmounts: tokenAmounts,
+            priceRanges: new uint256[](0),
+            allocationWeight: 1000, // 10% веса
+            active: true,
+            stakedAmount: 0,
+            rewardDebt: 0,
+            earnedRewards: 0,
+            createdAt: block.timestamp
+        });
+        
+        // Добавить в список пользователя
+        userConcentratedPositionsList[msg.sender].push(positionId);
+        
+        // Обновить общую ликвидность пула
+        pool.totalLiquidity = pool.totalLiquidity.add(liquidityAmount);
+        
+        emit ConcentratedLiquidityPositionCreated(
+            positionId,
+            msg.sender,
+            tokenA,
+            tokenB,
+            lowerPrice,
+            upperPrice,
+            liquidityAmount,
+            block.timestamp
+        );
+    }
+    
+    function updateConcentratedLiquidityPosition(
+        uint256 positionId,
+        uint256 newLiquidityAmount
+    ) external {
+        ConcentratedLiquidityPosition storage position = concentratedPositions[positionId];
+        require(position.owner == msg.sender, "Not position owner");
+        require(position.active, "Position not active");
+        require(newLiquidityAmount > 0, "Liquidity amount must be greater than 0");
+        
+        // Обновить ликвидность
+        ConcentratedPool storage pool = concentratedPools[position.tokenA][position.tokenB];
+        pool.totalLiquidity = pool.totalLiquidity.add(newLiquidityAmount).sub(position.liquidityAmount);
+        
+        position.liquidityAmount = newLiquidityAmount;
+        position.lastUpdateTime = block.timestamp;
+        
+        emit ConcentratedLiquidityPositionUpdated(positionId, newLiquidityAmount, block.timestamp);
+    }
+    
+    function removeConcentratedLiquidityPosition(
+        uint256 positionId
+    ) external {
+        ConcentratedLiquidityPosition storage position = concentratedPositions[positionId];
+        require(position.owner == msg.sender, "Not position owner");
+        require(position.active, "Position not active");
+        
+        // Возврат ликвидности
+        ConcentratedPool storage pool = concentratedPools[position.tokenA][position.tokenB];
+        pool.totalLiquidity = pool.totalLiquidity.sub(position.liquidityAmount);
+        
+        // Деактивировать позицию
+        position.active = false;
+        
+        emit ConcentratedLiquidityPositionRemoved(
+            positionId,
+            msg.sender,
+            position.liquidityAmount,
+            block.timestamp
+        );
+    }
+    
+    function addPriceRangeToPool(
+        address tokenA,
+        address tokenB,
+        uint256 lowerBound,
+        uint256 upperBound,
+        uint256 liquidityAllocation,
+        uint256 allocationWeight
+    ) external onlyOwner {
+        ConcentratedPool storage pool = concentratedPools[tokenA][tokenB];
+        require(pool.isActive, "Pool not active");
+        require(lowerBound < upperBound, "Invalid price range");
+        
+        uint256 rangeId = uint256(keccak256(abi.encodePacked(lowerBound, upperBound, block.timestamp)));
+        
+        pool.priceRanges[rangeId] = PriceRange({
+            lowerBound: lowerBound,
+            upperBound: upperBound,
+            liquidityAllocation: liquidityAllocation,
+            totalVolume: 0,
+            lastUpdated: block.timestamp,
+            currentPrice: (lowerBound + upperBound) / 2,
+            allocationWeight: allocationWeight
+        });
+        
+        pool.activePriceRanges.push(rangeId);
+        
+        emit PriceRangeUpdated(
+            tokenA,
+            tokenB,
+            rangeId,
+            lowerBound,
+            upperBound,
+            liquidityAllocation,
+            block.timestamp
+        );
+    }
+    
+    function getConcentratedPoolInfo(address tokenA, address tokenB) external view returns (ConcentratedPool memory) {
+        return concentratedPools[tokenA][tokenB];
+    }
+    
+    function getConcentratedPositionInfo(uint256 positionId) external view returns (ConcentratedLiquidityPosition memory) {
+        return concentratedPositions[positionId];
+    }
+    
+    function getActivePriceRanges(address tokenA, address tokenB) external view returns (uint256[] memory) {
+        return concentratedPools[tokenA][tokenB].activePriceRanges;
+    }
+    
+    function getConcentratedPositionByUser(address user, uint256 positionId) external view returns (UserConcentratedPosition memory) {
+        return userConcentratedPositions[user][positionId];
+    }
+    
+    function getUserConcentratedPositions(address user) external view returns (uint256[] memory) {
+        return userConcentratedPositionsList[user];
+    }
+    
+    function calculateConcentratedLiquidityReward(
+        uint256 positionId,
+        uint256 timeElapsed
+    ) external view returns (uint256) {
+        ConcentratedLiquidityPosition storage position = concentratedPositions[positionId];
+        if (!position.active || position.liquidityAmount == 0) return 0;
+        
+        // Простая формула награды
+        uint256 baseReward = position.liquidityAmount.mul(timeElapsed).div(1000);
+        return baseReward;
+    }
+    
+    function getPoolPriceRanges(address tokenA, address tokenB) external view returns (PriceRange[] memory) {
+        ConcentratedPool storage pool = concentratedPools[tokenA][tokenB];
+        PriceRange[] memory ranges = new PriceRange[](pool.activePriceRanges.length);
+        
+        for (uint256 i = 0; i < pool.activePriceRanges.length; i++) {
+            ranges[i] = pool.priceRanges[pool.activePriceRanges[i]];
+        }
+        
+        return ranges;
+    }
+    
+    function isPositionInRange(
+        uint256 positionId,
+        uint256 currentPrice
+    ) external view returns (bool) {
+        ConcentratedLiquidityPosition storage position = concentratedPositions[positionId];
+        return currentPrice >= position.lowerPrice && currentPrice <= position.upperPrice;
+    }
+    
+    function getConcentratedPoolStats(
+        address tokenA,
+        address tokenB
+    ) external view returns (
+        uint256 totalLiquidity,
+        uint256 totalStaked,
+        uint256 totalPositions,
+        uint256 activePriceRanges,
+        uint256 poolStartTime,
+        uint256 poolEndTime
+    ) {
+        ConcentratedPool storage pool = concentratedPools[tokenA][tokenB];
+        return (
+            pool.totalLiquidity,
+            pool.totalStaked,
+            0, // totalPositions - в реальной реализации
+            pool.activePriceRanges.length,
+            pool.poolStartTime,
+            pool.poolEndTime
+        );
+    }
+}
 }
