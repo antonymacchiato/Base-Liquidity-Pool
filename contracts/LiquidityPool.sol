@@ -469,7 +469,7 @@ function removeConcentratedLiquidity(
 ) external {
     // Удаление концентрированной ликвидности
 }
-// Добавить структуры:
+
 struct PriceRange {
     uint256 lowerBound;
     uint256 upperBound;
