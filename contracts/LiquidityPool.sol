@@ -448,7 +448,7 @@ struct ConcentratedLiquidity {
     uint256 lastUpdateTime;
 }
 
-// Добавить функции:
+
 function addConcentratedLiquidity(
     address tokenA,
     address tokenB,
