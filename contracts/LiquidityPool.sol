@@ -592,18 +592,6 @@ function getTotalLiquidity(uint256 poolId) internal view returns (uint256) {
     // Implementation would return total liquidity
     return 0;
 }
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
-
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
-
-contract LiquidityPool is Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
-
-    // Существующие структуры и функции...
     
     // Новые структуры для концентрированной ликвидности
     struct ConcentratedLiquidityPosition {
@@ -976,5 +964,18 @@ contract LiquidityPool is Ownable, ReentrancyGuard {
             pool.poolEndTime
         );
     }
+    // Добавить в функцию calculatePendingReward
+function calculatePendingReward(address user, address token) public view returns (uint256) {
+    // Защита от переполнения
+    uint256 rewardPerToken = pool.rewardPerTokenStored;
+    uint256 userReward = userInfo[token][user].rewardDebt;
+    
+    if (userInfo[token][user].amount > 0) {
+        uint256 userEarned = userInfo[token][user].amount.mul(rewardPerToken.sub(userReward)).div(1e18);
+        // Защита от переполнения
+        require(userEarned <= type(uint256).max, "Reward calculation overflow");
+        return userEarned;
+    }
+    return 0;
 }
 }
