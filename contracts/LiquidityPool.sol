@@ -731,7 +731,7 @@ function getTotalLiquidity(uint256 poolId) internal view returns (uint256) {
         pool.poolEndTime = block.timestamp + 365 days; // 1 год
         pool.isActive = true;
         
-        // Создать диапазоны цен
+  
         uint256 price = minPrice;
         uint256 rangeId = 0;
         while (price < maxPrice) {
