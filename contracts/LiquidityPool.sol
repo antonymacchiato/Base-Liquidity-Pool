@@ -61,7 +61,7 @@ contract BaseV2Pair is ERC20 {
         }
 
         _mint(to, liquidity);
-        _update(bal0, bal1);
+        _update(bal0, bal1); 
 
         emit Mint(msg.sender, amount0, amount1, liquidity);
     }
