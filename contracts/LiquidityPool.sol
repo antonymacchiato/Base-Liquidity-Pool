@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.20;
 
-
-
-
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/Math.sol";
 
 interface IERC20Like {
     function balanceOf(address) external view returns (uint256);
@@ -41,11 +41,23 @@ contract LiquidityPool is ERC20 {
         emit Sync(reserve0, reserve1);
     }
 
-    // Improvement: manual reserve sync
     function sync() external {
         uint256 bal0 = IERC20Like(token0).balanceOf(address(this));
         uint256 bal1 = IERC20Like(token1).balanceOf(address(this));
         _update(bal0, bal1);
+    }
+
+    // Improvement
+    function skim(address to) external {
+        require(to != address(0), "to=0");
+        uint256 bal0 = IERC20Like(token0).balanceOf(address(this));
+        uint256 bal1 = IERC20Like(token1).balanceOf(address(this));
+
+        uint256 extra0 = bal0 > reserve0 ? bal0 - reserve0 : 0;
+        uint256 extra1 = bal1 > reserve1 ? bal1 - reserve1 : 0;
+
+        if (extra0 > 0) IERC20(token0).safeTransfer(to, extra0);
+        if (extra1 > 0) IERC20(token1).safeTransfer(to, extra1);
     }
 
     function mint(address to) external returns (uint256 liquidity) {
@@ -65,7 +77,6 @@ contract LiquidityPool is ERC20 {
 
         _mint(to, liquidity);
         _update(bal0, bal1);
-
         emit Mint(msg.sender, amount0, amount1, liquidity);
     }
 
@@ -113,7 +124,6 @@ contract LiquidityPool is ERC20 {
         require(bal0Adj * bal1Adj >= uint256(reserve0) * uint256(reserve1) * 1000 * 1000, "K");
 
         _update(bal0, bal1);
-
         emit Swap(msg.sender, amountIn0, amountIn1, amountOut0, amountOut1, to);
     }
 }
