@@ -1,51 +1,50 @@
-// base-liquidity-pool/scripts/deploy.js
-const { ethers } = require("hardhat");
+const fs = require("fs");
+const path = require("path");
+require("dotenv").config();
 
 async function main() {
-  console.log("Deploying Base Liquidity Pool...");
-  
   const [deployer] = await ethers.getSigners();
-  console.log("Deploying contracts with the account:", deployer.address);
-  console.log("Account balance:", (await deployer.getBalance()).toString());
+  console.log("Deployer:", deployer.address);
 
+  // Provide TOKEN0 and TOKEN1 or deploy two ERC20-like tokens from PoolManager (if it exists as ERC20 helper)
+  let token0 = process.env.TOKEN0 || "";
+  let token1 = process.env.TOKEN1 || "";
 
-  const Token1 = await ethers.getContractFactory("ERC20Token");
-  const token1 = await Token1.deploy("Token1", "TKN1");
-  await token1.deployed();
-  
-  const Token2 = await ethers.getContractFactory("ERC20Token");
-  const token2 = await Token2.deploy("Token2", "TKN2");
-  await token2.deployed();
+  if (!token0 || !token1) {
+    const Token = await ethers.getContractFactory("PoolManager");
+    const t0 = await Token.deploy("Token0", "TK0", 18);
+    await t0.deployed();
+    const t1 = await Token.deploy("Token1", "TK1", 18);
+    await t1.deployed();
+    token0 = t0.address;
+    token1 = t1.address;
+    console.log("Deployed Token0 (PoolManager):", token0);
+    console.log("Deployed Token1 (PoolManager):", token1);
+  }
 
-
-  const LiquidityPool = await ethers.getContractFactory("LiquidityPoolV2");
-  const pool = await LiquidityPool.deploy(
-    [token1.address, token2.address],
-    [5000, 5000], / 50% веса для каждого токена
-    10 // 0.1% fee rate
-  );
-
+  const Pool = await ethers.getContractFactory("LiquidityPool");
+  const pool = await Pool.deploy(token0, token1);
   await pool.deployed();
 
-  console.log("Base Liquidity Pool deployed to:", pool.address);
-  console.log("Token1 deployed to:", token1.address);
-  console.log("Token2 deployed to:", token2.address);
-  
-  // Сохраняем адреса
-  const fs = require("fs");
-  const data = {
-    pool: pool.address,
-    token1: token1.address,
-    token2: token2.address,
-    owner: deployer.address
+  console.log("LiquidityPool:", pool.address);
+
+  const out = {
+    network: hre.network.name,
+    chainId: (await ethers.provider.getNetwork()).chainId,
+    deployer: deployer.address,
+    contracts: {
+      Token0: token0,
+      Token1: token1,
+      LiquidityPool: pool.address
+    }
   };
-  
-  fs.writeFileSync("./config/deployment.json", JSON.stringify(data, null, 2));
+
+  const outPath = path.join(__dirname, "..", "deployments.json");
+  fs.writeFileSync(outPath, JSON.stringify(out, null, 2));
+  console.log("Saved:", outPath);
 }
 
-main()
-  .then(() => process.exit(0))
-  .catch(error => {
-    console.error(error);
-    process.exit(1);
-  });
+main().catch((e) => {
+  console.error(e);
+  process.exit(1);
+});
