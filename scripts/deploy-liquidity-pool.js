@@ -21,7 +21,7 @@ async function main() {
   const LiquidityPool = await ethers.getContractFactory("LiquidityPoolV2");
   const pool = await LiquidityPool.deploy(
     [token1.address, token2.address],
-    [5000, 5000], // 50% веса для каждого токена
+    [5000, 5000], / 50% веса для каждого токена
     10 // 0.1% fee rate
   );
 
