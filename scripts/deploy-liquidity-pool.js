@@ -17,7 +17,7 @@ async function main() {
   const token2 = await Token2.deploy("Token2", "TKN2");
   await token2.deployed();
 
-  // Деплой Liquidity Pool контракта
+
   const LiquidityPool = await ethers.getContractFactory("LiquidityPoolV2");
   const pool = await LiquidityPool.deploy(
     [token1.address, token2.address],
