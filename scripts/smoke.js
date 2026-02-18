@@ -1,7 +1,7 @@
 require("dotenv").config();
 const fs = require("fs");
 const path = require("path");
-
+ 
 async function main() {
   const depPath = path.join(__dirname, "..", "deployments.json");
   const deployments = JSON.parse(fs.readFileSync(depPath, "utf8"));
