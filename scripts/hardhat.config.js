@@ -5,13 +5,7 @@ require("dotenv").config();
 require("@nomicfoundation/hardhat-ethers");
 require("@nomicfoundation/hardhat-verify");
 
-/**
- * Env:
- * - PRIVATE_KEY=0xabc...
- * - BASE_RPC_URL=https://mainnet.base.org
- * - BASE_SEPOLIA_RPC_URL=https://sepolia.base.org
- * - ETHERSCAN_API_KEY=...
- */
+
 
 const PRIVATE_KEY = process.env.PRIVATE_KEY || "";
 const BASE_RPC_URL = process.env.BASE_RPC_URL || "https://mainnet.base.org";
