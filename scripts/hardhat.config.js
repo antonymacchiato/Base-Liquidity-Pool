@@ -45,7 +45,7 @@ module.exports = {
   },
 
   // Some projects may have different folder structures.
-  // Keep default unless you have a custom /contracts path already.
+
   paths: {
     sources: "./contracts",
     tests: "./test",
