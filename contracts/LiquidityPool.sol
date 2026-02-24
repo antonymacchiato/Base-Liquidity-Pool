@@ -126,4 +126,15 @@ contract LiquidityPool is ERC20 {
         _update(bal0, bal1);
         emit Swap(msg.sender, amountIn0, amountIn1, amountOut0, amountOut1, to);
     }
+    address public feeTo;
+
+function setFeeTo(address _feeTo) external onlyOwner {
+    feeTo = _feeTo;
+}
+
+function claimProtocolFees(address token) external {
+    require(msg.sender == feeTo, "not feeTo");
+    uint256 bal = IERC20(token).balanceOf(address(this));
+    IERC20(token).transfer(feeTo, bal);
+}
 }
