@@ -130,11 +130,11 @@ contract LiquidityPool is ERC20 {
 
 function setFeeTo(address _feeTo) external onlyOwner {
     feeTo = _feeTo;
-}
+    }
 
 function claimProtocolFees(address token) external {
     require(msg.sender == feeTo, "not feeTo");
     uint256 bal = IERC20(token).balanceOf(address(this));
     IERC20(token).transfer(feeTo, bal);
-}
+    }
 }
